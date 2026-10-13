@@ -192,5 +192,15 @@ describe('Project & Access Control API (/api/projects)', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.message).toBe(MESSAGES.PROJECT.DELETE_SUCCESS);
     });
+
+    it('should allow project members to export project tasks as structured data', async () => {
+      const res = await request(app)
+        .get(`/api/projects/${projectId}/export`)
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(Array.isArray(res.body.data.tasks)).toBe(true);
+    });
   });
 });

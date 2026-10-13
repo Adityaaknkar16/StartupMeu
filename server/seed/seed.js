@@ -147,6 +147,11 @@ const seedData = async () => {
         assignee: maya._id,
         dueDate: new Date(now + 2 * dayMs),
         order: 0,
+        subtasks: [
+          { title: 'Setup DragDropContext', completed: true },
+          { title: 'Add optimistic rollback', completed: true },
+          { title: 'Mobile swipeable columns', completed: false }
+        ],
         createdBy: alex._id
       },
       {
@@ -157,6 +162,11 @@ const seedData = async () => {
         assignee: liam._id,
         dueDate: new Date(now + 3 * dayMs),
         order: 1,
+        subtasks: [
+          { title: 'Dark mode tokens', completed: true },
+          { title: 'Light mode tokens', completed: true },
+          { title: 'System preference sync', completed: false }
+        ],
         createdBy: liam._id
       },
       {

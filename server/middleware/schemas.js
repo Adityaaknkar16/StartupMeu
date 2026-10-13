@@ -105,7 +105,16 @@ const createTaskSchema = z.object({
     .union([z.string().datetime(), z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal(''), z.null()])
     .optional()
     .transform((val) => (val ? new Date(val) : null)),
-  order: z.number().int().nonnegative().optional().default(0)
+  order: z.number().int().nonnegative().optional().default(0),
+  subtasks: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1, 'Subtask title cannot be empty'),
+        completed: z.boolean().default(false)
+      })
+    )
+    .optional()
+    .default([])
 });
 
 const updateTaskSchema = z.object({
@@ -138,7 +147,15 @@ const updateTaskSchema = z.object({
     .union([z.string().datetime(), z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal(''), z.null()])
     .optional()
     .transform((val) => (val ? new Date(val) : null)),
-  order: z.number().int().nonnegative().optional()
+  order: z.number().int().nonnegative().optional(),
+  subtasks: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1, 'Subtask title cannot be empty'),
+        completed: z.boolean().default(false)
+      })
+    )
+    .optional()
 });
 
 const moveTaskSchema = z.object({

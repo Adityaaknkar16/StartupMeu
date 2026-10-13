@@ -52,6 +52,23 @@ describe('Task CRUD, Filtering, Pagination & Move API (/api/tasks & /api/project
       expect(res.body.data.task.priority).toBe('high');
     });
 
+    it('should create task with subtasks checklist', async () => {
+      const res = await request(app)
+        .post(`/api/projects/${projectId}/tasks`)
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .send({
+          title: 'Full Stack Integration',
+          subtasks: [
+            { title: 'Write tests', completed: true },
+            { title: 'Deploy staging', completed: false }
+          ]
+        });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.data.task.subtasks.length).toBe(2);
+      expect(res.body.data.task.subtasks[0].completed).toBe(true);
+    });
+
     it('should reject task creation from an unauthorized outsider', async () => {
       const res = await request(app)
         .post(`/api/projects/${projectId}/tasks`)

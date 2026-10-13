@@ -25,10 +25,12 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  // Filters state
+  // Filters & sorting state (Change 2, 3)
   const [search, setSearch] = useState('');
   const [priority, setPriority] = useState('');
   const [assignee, setAssignee] = useState('');
+  const [sortBy, setSortBy] = useState('order');
+  const [dueFilter, setDueFilter] = useState('');
 
   // Modals state
   const [editingTask, setEditingTask] = useState(null);
@@ -91,6 +93,17 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
 
     setTasks(updatedTasks);
 
+    // Change 12: Celebratory effect when completed
+    if (newStatus === 'done' && source.droppableId !== 'done') {
+      const doneCol = document.getElementById('column-done');
+      if (doneCol) {
+        doneCol.style.boxShadow = '0 0 30px rgba(16, 185, 129, 0.4)';
+        setTimeout(() => {
+          doneCol.style.boxShadow = 'var(--shadow-sm)';
+        }, 1200);
+      }
+    }
+
     // 3. Make backend API request
     try {
       const res = await taskApi.moveTask(draggableId, {
@@ -148,7 +161,6 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
           await taskApi.deleteTask(taskToDelete._id);
           refreshBoard();
         } catch (err) {
-          // If delete failed and not undone, put it back
           setTasks(previousTasks);
           showError('Failed to delete task from server');
         }
@@ -176,7 +188,29 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
     setSearch('');
     setPriority('');
     setAssignee('');
+    setSortBy('order');
+    setDueFilter('');
   };
+
+  // Filter tasks based on due date chip
+  const filteredTasks = tasks.filter((task) => {
+    if (!dueFilter) return true;
+    if (dueFilter === 'overdue') {
+      return (
+        task.dueDate &&
+        task.status !== 'done' &&
+        new Date(task.dueDate).getTime() < Date.now()
+      );
+    }
+    if (dueFilter === 'week') {
+      if (!task.dueDate) return false;
+      const due = new Date(task.dueDate).getTime();
+      const now = Date.now();
+      const in7Days = now + 7 * 86400000;
+      return due >= now && due <= in7Days;
+    }
+    return true;
+  });
 
   if (loadError) {
     return <ErrorRetry message={loadError} onRetry={fetchTasks} isRetrying={isLoading} />;
@@ -184,7 +218,7 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
 
   return (
     <div>
-      {/* Filter & Search Bar */}
+      {/* Filter & Search Bar with sorting and due date chips */}
       <TaskFilterBar
         search={search}
         setSearch={setSearch}
@@ -192,6 +226,10 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
         setPriority={setPriority}
         assignee={assignee}
         setAssignee={setAssignee}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        dueFilter={dueFilter}
+        setDueFilter={setDueFilter}
         searchInputRef={searchInputRef}
         onReset={handleResetFilters}
       />
@@ -203,9 +241,23 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="kanban-board">
             {COLUMNS.map((col) => {
-              const columnTasks = tasks
+              const columnTasks = filteredTasks
                 .filter((t) => t.status === col.id)
-                .sort((a, b) => (a.order || 0) - (b.order || 0));
+                .sort((a, b) => {
+                  if (sortBy === 'dueDate') {
+                    if (!a.dueDate) return 1;
+                    if (!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                  }
+                  if (sortBy === 'priority') {
+                    const weight = { high: 3, medium: 2, low: 1 };
+                    return (weight[b.priority] || 0) - (weight[a.priority] || 0);
+                  }
+                  if (sortBy === 'createdAt') {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                  }
+                  return (a.order || 0) - (b.order || 0);
+                });
 
               return (
                 <KanbanColumn
@@ -213,6 +265,7 @@ export const KanbanBoard = ({ searchInputRef, isCreateModalOpen, setIsCreateModa
                   columnId={col.id}
                   title={col.title}
                   tasks={columnTasks}
+                  searchQuery={search}
                   onNewTask={handleOpenNewTask}
                   onEditTask={handleEditTask}
                   onDeleteTask={handleDeleteTask}

@@ -1,20 +1,71 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { Calendar, Trash2 } from 'lucide-react';
+import { Calendar, Trash2, CheckSquare } from 'lucide-react';
 import Avatar from '../common/Avatar';
 
-export const TaskCard = ({ task, index, onEdit, onDelete }) => {
+export const TaskCard = ({ task, index, onEdit, onDelete, searchQuery = '' }) => {
   const isOverdue =
     task.dueDate &&
     task.status !== 'done' &&
     new Date(task.dueDate).getTime() < Date.now();
 
-  const formattedDueDate = task.dueDate
-    ? new Date(task.dueDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      })
-    : null;
+  // Change 4: Dynamic human-friendly relative due-date formatting
+  const getRelativeDueLabel = (dueDateStr) => {
+    if (!dueDateStr) return null;
+    const dueTime = new Date(dueDateStr).setHours(23, 59, 59, 999);
+    const now = Date.now();
+    const diffDays = Math.ceil((dueTime - now) / (1000 * 60 * 60 * 24));
+
+    if (task.status === 'done') {
+      return new Date(dueDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    if (diffDays < 0) {
+      const pastDays = Math.abs(diffDays);
+      return pastDays === 1 ? 'Overdue by 1 day' : `Overdue by ${pastDays} days`;
+    }
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    if (diffDays <= 7) return `Due in ${diffDays} days`;
+
+    return new Date(dueDateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const relativeDueText = getRelativeDueLabel(task.dueDate);
+
+  // Change 11: Subtasks calculation
+  const subtasks = task.subtasks || [];
+  const completedSubtasks = subtasks.filter((s) => s.completed).length;
+
+  // Change 1: Search keyword highlighting
+  const renderHighlightedText = (text, query) => {
+    if (!query || !query.trim()) return text;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <mark
+              key={i}
+              style={{
+                background: 'rgba(245, 158, 11, 0.35)',
+                color: 'inherit',
+                borderRadius: '2px',
+                padding: '0 2px'
+              }}
+            >
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
 
   return (
     <Draggable draggableId={task._id} index={index}>
@@ -52,21 +103,47 @@ export const TaskCard = ({ task, index, onEdit, onDelete }) => {
             </button>
           </div>
 
-          {/* Title */}
-          <h4 className="task-title">{task.title}</h4>
+          {/* Title with search highlighting */}
+          <h4 className="task-title">
+            {renderHighlightedText(task.title, searchQuery)}
+          </h4>
 
           {/* Optional snippet description */}
           {task.description && (
-            <p className="task-description">{task.description}</p>
+            <p className="task-description">
+              {renderHighlightedText(task.description, searchQuery)}
+            </p>
+          )}
+
+          {/* Subtasks mini badge if present */}
+          {subtasks.length > 0 && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: '0.72rem',
+                color: completedSubtasks === subtasks.length ? 'var(--status-done)' : 'var(--text-muted)',
+                marginBottom: 10,
+                background: 'var(--surface-input)',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-sm)'
+              }}
+            >
+              <CheckSquare size={12} />
+              <span>
+                {completedSubtasks}/{subtasks.length} subtasks
+              </span>
+            </div>
           )}
 
           {/* Footer with Due Date & Assignee Avatar */}
           <div className="task-card-footer">
             <div className={`due-date-badge ${isOverdue ? 'is-overdue' : ''}`}>
-              {formattedDueDate ? (
+              {relativeDueText ? (
                 <>
                   <Calendar size={13} />
-                  <span>{formattedDueDate} {isOverdue ? '(Overdue)' : ''}</span>
+                  <span>{relativeDueText}</span>
                 </>
               ) : (
                 <span style={{ color: 'var(--text-subtle)' }}>No due date</span>

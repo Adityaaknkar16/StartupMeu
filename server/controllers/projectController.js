@@ -166,6 +166,24 @@ const projectController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  /**
+   * Export endpoint: GET /projects/:id/export
+   */
+  async exportProject(req, res, next) {
+    try {
+      const exportData = await projectService.exportProjectTasks(req.project._id);
+
+      return sendSuccess(
+        res,
+        'Project tasks exported successfully',
+        { tasks: exportData },
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

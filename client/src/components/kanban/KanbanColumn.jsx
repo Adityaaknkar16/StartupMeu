@@ -8,6 +8,7 @@ export const KanbanColumn = ({
   columnId,
   title,
   tasks = [],
+  searchQuery = '',
   onNewTask,
   onEditTask,
   onDeleteTask
@@ -60,6 +61,7 @@ export const KanbanColumn = ({
                   key={task._id}
                   task={task}
                   index={index}
+                  searchQuery={searchQuery}
                   onEdit={onEditTask}
                   onDelete={onDeleteTask}
                 />

@@ -40,9 +40,10 @@ router.post(
   projectController.inviteMember
 );
 
-// Project Analytics & Timeline
+// Project Analytics & Timeline & Export
 router.get('/:id/stats', requireProjectMember, projectController.getProjectStats);
 router.get('/:id/activities', requireProjectMember, projectController.getProjectActivities);
+router.get('/:id/export', requireProjectMember, projectController.exportProject);
 
 // Project Tasks (Members can view and create tasks)
 router.get('/:id/tasks', requireProjectMember, taskController.getTasks);

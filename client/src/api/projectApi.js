@@ -9,6 +9,7 @@ export const projectApi = {
   inviteMember: (id, data) => axiosClient.post(`/projects/${id}/invite`, data),
   getProjectStats: (id) => axiosClient.get(`/projects/${id}/stats`),
   getProjectActivities: (id, limit = 30) => axiosClient.get(`/projects/${id}/activities?limit=${limit}`),
+  exportProjectTasks: (id) => axiosClient.get(`/projects/${id}/export`),
   getProjectTasks: (id, params = {}) => axiosClient.get(`/projects/${id}/tasks`, { params }),
   createTask: (id, data) => axiosClient.post(`/projects/${id}/tasks`, data)
 };

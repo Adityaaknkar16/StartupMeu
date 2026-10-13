@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, Check } from 'lucide-react';
+import { AlertCircle, Check, Plus, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import { useProjects } from '../../context/ProjectContext';
 import { useToast } from '../../context/ToastContext';
@@ -17,6 +17,8 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
   const [priority, setPriority] = useState('medium');
   const [assignee, setAssignee] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [subtasks, setSubtasks] = useState([]);
+  const [newSubtaskInput, setNewSubtaskInput] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,6 +30,7 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       setPriority(taskToEdit.priority || 'medium');
       setAssignee(taskToEdit.assignee?._id || taskToEdit.assignee || '');
       setDueDate(taskToEdit.dueDate ? new Date(taskToEdit.dueDate).toISOString().split('T')[0] : '');
+      setSubtasks(taskToEdit.subtasks || []);
     } else {
       setTitle('');
       setDescription('');
@@ -35,9 +38,28 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       setPriority('medium');
       setAssignee('');
       setDueDate('');
+      setSubtasks([]);
     }
+    setNewSubtaskInput('');
     setErrors({});
   }, [taskToEdit, defaultStatus, isOpen]);
+
+  const handleAddSubtask = (e) => {
+    e.preventDefault();
+    if (!newSubtaskInput.trim()) return;
+    setSubtasks((prev) => [...prev, { title: newSubtaskInput.trim(), completed: false }]);
+    setNewSubtaskInput('');
+  };
+
+  const handleToggleSubtask = (index) => {
+    setSubtasks((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, completed: !s.completed } : s))
+    );
+  };
+
+  const handleRemoveSubtask = (index) => {
+    setSubtasks((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +77,8 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       status,
       priority,
       assignee: assignee || null,
-      dueDate: dueDate || null
+      dueDate: dueDate || null,
+      subtasks
     };
 
     try {
@@ -102,14 +125,25 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
     >
       <form onSubmit={handleSubmit}>
         <div className="modal-body">
-          {/* Task Title */}
+          {/* Task Title & Live Character Counter (Change 6) */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-title">
-              Task Title <span style={{ color: 'var(--overdue-color)' }}>*</span>
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="form-label" htmlFor="task-title">
+                Task Title <span style={{ color: 'var(--overdue-color)' }}>*</span>
+              </label>
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  color: title.length > 130 ? 'var(--overdue-color)' : 'var(--text-subtle)'
+                }}
+              >
+                {title.length}/150
+              </span>
+            </div>
             <input
               id="task-title"
               type="text"
+              maxLength={150}
               className="form-input"
               placeholder="e.g. Set up Redis caching for board aggregation"
               value={title}
@@ -127,19 +161,103 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
             )}
           </div>
 
-          {/* Description */}
+          {/* Description & Live Character Counter (Change 6) */}
           <div className="form-group">
-            <label className="form-label" htmlFor="task-description">
-              Description (Optional)
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="form-label" htmlFor="task-description">
+                Description (Optional)
+              </label>
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  color: description.length > 1800 ? 'var(--overdue-color)' : 'var(--text-subtle)'
+                }}
+              >
+                {description.length}/2000
+              </span>
+            </div>
             <textarea
               id="task-description"
               className="form-textarea"
+              maxLength={2000}
               rows={3}
               placeholder="Add key objectives, criteria, or context..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+
+          {/* Subtasks Checklist (Change 11) */}
+          <div className="form-group" style={{ marginBottom: 20 }}>
+            <label className="form-label">Subtasks & Checklist</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+              {subtasks.map((st, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--surface-input)',
+                    border: '1px solid var(--border-subtle)'
+                  }}
+                >
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      textDecoration: st.completed ? 'line-through' : 'none',
+                      color: st.completed ? 'var(--text-muted)' : 'inherit'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={st.completed}
+                      onChange={() => handleToggleSubtask(idx)}
+                    />
+                    <span>{st.title}</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSubtask(idx)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-subtle)' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Add subtask item..."
+                value={newSubtaskInput}
+                onChange={(e) => setNewSubtaskInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddSubtask(e);
+                  }
+                }}
+                style={{ padding: '6px 10px', fontSize: '0.85rem' }}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleAddSubtask}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Plus size={14} />
+                <span>Add</span>
+              </button>
+            </div>
           </div>
 
           {/* Status & Priority Grid */}

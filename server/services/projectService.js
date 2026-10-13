@@ -277,6 +277,30 @@ const projectService = {
       statusCounts,
       priorityCounts
     };
+  },
+
+  /**
+   * Export all tasks for project reporting/standups
+   */
+  async exportProjectTasks(projectId) {
+    const tasks = await Task.find({ project: projectId })
+      .sort({ status: 1, order: 1 })
+      .populate('assignee', 'name email')
+      .populate('createdBy', 'name email')
+      .lean();
+
+    return tasks.map((t) => ({
+      id: t._id,
+      title: t.title,
+      description: t.description || '',
+      status: t.status,
+      priority: t.priority,
+      assignee: t.assignee?.name || 'Unassigned',
+      dueDate: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : '',
+      subtasksCompleted: (t.subtasks || []).filter((s) => s.completed).length,
+      subtasksTotal: (t.subtasks || []).length,
+      createdAt: t.createdAt
+    }));
   }
 };
 

@@ -9,6 +9,7 @@ import { MESSAGES } from '../../constants/messages';
 export const ActivityTimeline = ({ isOpen, onClose }) => {
   const { activeProject, boardVersion } = useProjects();
   const [activities, setActivities] = useState([]);
+  const [filterType, setFilterType] = useState('all'); // Change 8: Timeline filters
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export const ActivityTimeline = ({ isOpen, onClose }) => {
       if (!activeProject?._id || !isOpen) return;
       setIsLoading(true);
       try {
-        const res = await projectApi.getProjectActivities(activeProject._id, 30);
+        const res = await projectApi.getProjectActivities(activeProject._id, 40);
         if (isMounted && res.success) {
           setActivities(res.data.activities || []);
         }
@@ -94,6 +95,18 @@ export const ActivityTimeline = ({ isOpen, onClose }) => {
     }
   };
 
+  // Change 8: Filter activities
+  const filteredActivities = activities.filter((act) => {
+    if (filterType === 'all') return true;
+    if (filterType === 'tasks') {
+      return ['created_task', 'moved_task', 'updated_task', 'deleted_task'].includes(act.action);
+    }
+    if (filterType === 'members') {
+      return ['invited_member', 'removed_member'].includes(act.action);
+    }
+    return true;
+  });
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -137,25 +150,64 @@ export const ActivityTimeline = ({ isOpen, onClose }) => {
             {/* Header */}
             <div
               style={{
-                padding: '20px 24px',
-                borderBottom: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
+                padding: '20px 24px 14px',
+                borderBottom: '1px solid var(--border-subtle)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Activity size={20} color="var(--primary)" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Activity Feed</h3>
-              </div>
-              <button
-                type="button"
-                className="btn-icon"
-                onClick={onClose}
-                aria-label="Close timeline"
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 12
+                }}
               >
-                <X size={18} />
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Activity size={20} color="var(--primary)" />
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Activity Feed</h3>
+                </div>
+                <button
+                  type="button"
+                  className="btn-icon"
+                  onClick={onClose}
+                  aria-label="Close timeline"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Change 8: Category Filter Tabs */}
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'var(--surface-input)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 3,
+                  gap: 4
+                }}
+              >
+                {['all', 'tasks', 'members'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setFilterType(cat)}
+                    style={{
+                      flex: 1,
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: filterType === cat ? 'var(--surface-card)' : 'transparent',
+                      color: filterType === cat ? 'var(--text-main)' : 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Activities List */}
@@ -164,14 +216,16 @@ export const ActivityTimeline = ({ isOpen, onClose }) => {
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: 40 }}>
                   Loading latest activities...
                 </div>
-              ) : activities.length === 0 ? (
+              ) : filteredActivities.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: 40 }}>
-                  {MESSAGES.EMPTY_STATE.NO_ACTIVITIES}
+                  {filterType === 'all'
+                    ? MESSAGES.EMPTY_STATE.NO_ACTIVITIES
+                    : `No ${filterType} activities found.`}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  {activities.map((act) => {
-                    const { label, color } = getActionDetails(act);
+                  {filteredActivities.map((act) => {
+                    const { label } = getActionDetails(act);
 
                     return (
                       <div

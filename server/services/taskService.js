@@ -125,6 +125,7 @@ const taskService = {
     if (updateData.assignee !== undefined) task.assignee = updateData.assignee || null;
     if (updateData.dueDate !== undefined) task.dueDate = updateData.dueDate || null;
     if (updateData.order !== undefined) task.order = updateData.order;
+    if (updateData.subtasks !== undefined) task.subtasks = updateData.subtasks;
 
     await task.save();
 
