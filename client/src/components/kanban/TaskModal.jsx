@@ -17,6 +17,7 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
   const [priority, setPriority] = useState('medium');
   const [assignee, setAssignee] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState('');
   const [subtasks, setSubtasks] = useState([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState('');
   const [errors, setErrors] = useState({});
@@ -30,6 +31,7 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       setPriority(taskToEdit.priority || 'medium');
       setAssignee(taskToEdit.assignee?._id || taskToEdit.assignee || '');
       setDueDate(taskToEdit.dueDate ? new Date(taskToEdit.dueDate).toISOString().split('T')[0] : '');
+      setEstimatedHours(taskToEdit.estimatedHours || '');
       setSubtasks(taskToEdit.subtasks || []);
     } else {
       setTitle('');
@@ -38,6 +40,7 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       setPriority('medium');
       setAssignee('');
       setDueDate('');
+      setEstimatedHours('');
       setSubtasks([]);
     }
     setNewSubtaskInput('');
@@ -78,6 +81,7 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
       priority,
       assignee: assignee || null,
       dueDate: dueDate || null,
+      estimatedHours: estimatedHours ? Number(estimatedHours) : 0,
       subtasks
     };
 
@@ -326,6 +330,22 @@ export const TaskModal = ({ isOpen, onClose, taskToEdit = null, defaultStatus = 
                 className="form-input"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="task-estimated-hours">
+                Estimated Hours (Est. Time)
+              </label>
+              <input
+                id="task-estimated-hours"
+                type="number"
+                min="0"
+                step="0.5"
+                placeholder="e.g. 4"
+                className="form-input"
+                value={estimatedHours}
+                onChange={(e) => setEstimatedHours(e.target.value)}
               />
             </div>
           </div>

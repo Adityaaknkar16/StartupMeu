@@ -106,6 +106,7 @@ const createTaskSchema = z.object({
     .optional()
     .transform((val) => (val ? new Date(val) : null)),
   order: z.number().int().nonnegative().optional().default(0),
+  estimatedHours: z.number().nonnegative().optional().default(0),
   subtasks: z
     .array(
       z.object({
@@ -148,6 +149,7 @@ const updateTaskSchema = z.object({
     .optional()
     .transform((val) => (val ? new Date(val) : null)),
   order: z.number().int().nonnegative().optional(),
+  estimatedHours: z.number().nonnegative().optional(),
   subtasks: z
     .array(
       z.object({

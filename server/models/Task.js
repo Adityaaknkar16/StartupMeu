@@ -54,6 +54,10 @@ const taskSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    estimatedHours: {
+      type: Number,
+      default: 0
+    },
     subtasks: [
       {
         title: {

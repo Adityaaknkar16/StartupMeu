@@ -85,9 +85,26 @@ export const TaskCard = ({ task, index, onEdit, onDelete, searchQuery = '' }) =>
         >
           {/* Header with Priority and Delete Action */}
           <div className="task-card-header">
-            <span className={`priority-chip priority-${task.priority}`}>
-              {task.priority}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className={`priority-chip priority-${task.priority}`}>
+                {task.priority}
+              </span>
+              {task.estimatedHours > 0 && (
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    color: 'var(--text-subtle)',
+                    background: 'var(--surface-input)',
+                    padding: '2px 6px',
+                    borderRadius: 'var(--radius-sm)'
+                  }}
+                  title="Estimated effort"
+                >
+                  ⏱ {task.estimatedHours}h
+                </span>
+              )}
+            </div>
             <button
               type="button"
               className="btn-icon"
