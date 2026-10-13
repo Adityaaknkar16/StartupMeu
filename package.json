@@ -1,0 +1,25 @@
+{
+  "name": "flowdeck-monorepo",
+  "version": "1.0.0",
+  "description": "FlowDeck - Production Grade MERN Team Task Board",
+  "scripts": {
+    "install:server": "npm --prefix server install",
+    "install:client": "npm --prefix client install",
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "dev": "npm --prefix server run dev",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "seed": "npm --prefix server run seed",
+    "test": "npm --prefix server test"
+  },
+  "keywords": [
+    "mern",
+    "flowdeck",
+    "react",
+    "express",
+    "mongodb",
+    "kanban"
+  ],
+  "author": "",
+  "license": "ISC"
+}

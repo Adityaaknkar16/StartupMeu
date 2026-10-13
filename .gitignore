@@ -1,0 +1,91 @@
+# ==============================================================================
+# Git Ignore - FlowDeck Team Workspace
+# Ensures zero secrets, environment keys, credentials, or build artifacts leak
+# ==============================================================================
+
+# Node dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Environment variables & secrets (Universal matching)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Credentials & Private Keys
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.pkcs12
+id_rsa
+id_rsa.pub
+id_ecdsa
+id_ed25519
+credentials.json
+client_secret*.json
+serviceAccountKey*.json
+firebase-adminsdk*.json
+
+# Logs & Debugging
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data & temp files
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Test coverage & Reports
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+
+# Build & Bundler outputs
+dist/
+**/dist/
+build/
+**/build/
+.vite/
+**/.vite/
+.next/
+out/
+.docusaurus/
+.cache/
+
+# OS & Editor generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor configurations
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*~

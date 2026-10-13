@@ -1,0 +1,8 @@
+# Client secrets & build artifacts
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.vite/
+*.log
